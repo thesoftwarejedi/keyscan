@@ -1,0 +1,182 @@
+<html>
+    
+    <head lang="en">
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+        <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+        <script src="bower_components/bitcore/bitcore.min.js"></script>
+        <script src="bower_components/bitcore-ecies/bitcore-ecies.min.js"></script>
+        <script src="no-js/index.js"></script>
+        <title>Key scanner</title>
+    </head>
+    
+    <body>
+        <div class="container">
+            <h1 class="text-center">Key scanner</h1>
+            <hr>
+            <div class="row">
+                <div class="col-md-12">
+                    <h2>Mnemonic</h2>
+                    <form class="form-horizontal" role="form">
+                        <div class="col-sm-2"></div>
+                        <div class="col-sm-10">
+                            <p>Muhahahahahha</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="key" class="col-sm-2 control-label">Key</label>
+                            <div class="col-sm-10">
+                                <textarea id="key" class="form-control"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="startingPath" class="col-sm-2 control-label">Starting Path</label>
+                            <div class="col-sm-3">
+                                <input id="startingPath" class="form-control" value="m/44'/0'/0'/0"></input>
+                            </div>
+                            <label for="searchSpace" class="col-sm-2 control-label">Search Space</label>
+                            <div class="col-sm-3">
+                                <input id="searchSpace" class="form-control" value="20"></input>
+                            </div>
+                            <div class="col-sm-2">
+                                <span class="input-group-btn">
+                                    <button id="btnScan" class="btn" type="button">Scan</button>
+                                </span>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <h2>Status</h2>
+                    <p>
+                        <span id="status"></span>
+                    </p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <h2>Interesting Addresses</h2>
+                    <p>Note these addreses are derived from the
+                        <strong>BIP32 Extended Key</strong>
+                    </p>
+                    <table class="table table-striped">
+                        <thead>
+                            <th>
+                                <div class="input-group">Derivation</div>
+                            </th>
+                            <th>
+                                <div class="input-group">Address</div>
+                            </th>
+                            <th>
+                                <div class="input-group">Balance</div>
+                            </th>
+                            <th>
+                                <div class="input-group">Private Key</div>
+                            </th>
+                        </thead>
+                        <tbody id="addresses">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <script type="text/template" id="address-row-template">
+            <tr>
+                <td class="derivation"><span></span></td>
+                <td class="address"><span></span></td>
+                <td class="balance"><span></span></td>
+                <td class="privkey"><span></span></td>
+            </tr>
+        </script>
+        <script>
+            var bitcore = require('bitcore');
+            var HDPrivateKey = bitcore.HDPrivateKey;
+            var HDPublicKey = bitcore.HDPublicKey;
+        	
+        	var DOM = {};
+        	DOM.key = $('#key');
+        	DOM.status = $('#status');
+        	DOM.addresses = $('#addresses');
+        	DOM.btnScan = $('#btnScan');
+        	DOM.startingPath = $('#startingPath');
+        	DOM.searchSpace = $('#searchSpace');
+            DOM.addressRowTemplate = $("#address-row-template").html();
+        	
+        	function init() {
+        		DOM.btnScan.on('click', scan);
+        	}
+        	
+        	function scan() {
+                var keyTxt = DOM.key.val();
+                var key;
+                if (keyTxt.startsWith('xpub')) {
+        		  key = new HDPublicKey(DOM.key.val());
+                } else if (keyTxt.startsWith('xprv')) {
+        		  key = new HDPrivateKey(DOM.key.val());
+                }
+                checkBalance(key, 'm');
+                var keysPerPath = DOM.searchSpace.val().split(",").map(Number);
+                var startingPath = DOM.startingPath.val();
+                findInterestingDerivitives(key.derive(startingPath), startingPath, keysPerPath);      
+        	}
+            
+            function findInterestingDerivitives(key, startPath, keysPerPath) {
+                var hardened = false;
+                for (var a = 0; a <= 1; a++) { //do this twice, for hardened/not hardened
+                    for (var idx = 0; idx < keysPerPath[0]; idx++) {
+                        var derivedKey = key.derive(idx, hardened);                        
+                        //for reporting purposes, not used in calc
+                        var path = startPath + '/' + idx + (hardened ? "'" : "");
+                        
+                        checkBalance(derivedKey, path);
+                        
+                        /*
+                        if (bal > 0) {
+                            stopAt++;
+                        }
+                        */
+                        
+                        if (keysPerPath.length > 1) {
+                            findInterestingDerivitives(derivedKey, path, keysPerPath.slice(1, keysPerPath.length));
+                        }
+                    }
+                    if (key instanceof HDPublicKey) break; //pub key, no hardened
+                    hardened = true;
+                } 
+            }
+            
+            function checkBalance(key, path) {
+                var address = key.publicKey.toAddress();
+                //var qry = 'https://blockchain.info/q/addressbalance/' + address;
+                var qry = 'https://insight.ericmartindale.com/api/addr/' + address + '/balance';
+                //var qry = 'https://insight.bitpay.com/api/addr/' + address + '/balance';
+                $.get(qry)
+                    .done(function(data) {
+                        reportOnBalance(key, path, Number(data));
+                    })
+                    .fail(function(ex) {
+                        alert( "$.get failed - " + ex );
+                    });
+            }
+            
+            function reportOnBalance(key, path, bal) {
+                //if (bal > 0) {
+                    var row = $(DOM.addressRowTemplate);
+                    row.find(".derivation span").text(path);
+                    var addr = key.publicKey.toAddress();
+                    row.find(".address span").html('<a target="_blank" href="https://blockchain.info/address/' + addr + '">' + addr + '</a>');
+                    try {
+                        row.find(".privkey span").text(key.privateKey.toWIF());
+                    } catch(e) { }
+                    row.find(".balance span").text(bal);
+                    DOM.addresses.append(row);
+                //}
+                DOM.status.text('Checked ' + path);
+            }
+            
+        	init();
+        </script>
+    </body>
+
+</html>
