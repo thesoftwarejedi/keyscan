@@ -56,6 +56,14 @@
             </div>
             <div class="row">
                 <div class="col-md-12">
+                    <h2>Total</h2>
+                    <p>
+                        <span id="total"></span>
+                    </p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
                     <h2>Interesting Addresses</h2>
                     <p>Note these addreses are derived from the
                         <strong>BIP32 Extended Key</strong>
@@ -100,6 +108,7 @@
         	DOM.addresses = $('#addresses');
         	DOM.btnScan = $('#btnScan');
         	DOM.startingPath = $('#startingPath');
+        	DOM.total = $('#total');
         	DOM.searchSpace = $('#searchSpace');
             DOM.addressRowTemplate = $("#address-row-template").html();
         	
@@ -109,6 +118,8 @@
         	
         	function scan() {
                 var keyTxt = DOM.key.val();
+                DOM.addresses.empty();
+        	    DOM.total.html('0');
                 var key;
                 if (keyTxt.startsWith('xpub')) {
         		  key = new HDPublicKey(DOM.key.val());
@@ -149,8 +160,8 @@
             function checkBalance(key, path) {
                 var address = key.publicKey.toAddress();
                 //var qry = 'https://blockchain.info/q/addressbalance/' + address;
-                var qry = 'https://insight.ericmartindale.com/api/addr/' + address + '/balance';
-                //var qry = 'https://insight.bitpay.com/api/addr/' + address + '/balance';
+                //var qry = 'https://insight.ericmartindale.com/api/addr/' + address + '/balance';
+                var qry = 'https://insight.bitpay.com/api/addr/' + address + '/balance';
                 $.get(qry)
                     .done(function(data) {
                         reportOnBalance(key, path, Number(data));
@@ -171,6 +182,7 @@
                     } catch(e) { }
                     row.find(".balance span").text(bal);
                     DOM.addresses.append(row);
+                    DOM.total.html((Number(DOM.total.html()) * 100000000 + bal) / 100000000);
                 //}
                 DOM.status.text('Checked ' + path);
             }
