@@ -28,12 +28,16 @@
                         </div>
                         <div class="form-group">
                             <label for="startingPath" class="col-sm-2 control-label">Starting Path</label>
-                            <div class="col-sm-3">
-                                <input id="startingPath" class="form-control" value="m/0"></input>
+                            <div class="col-sm-2">
+                                <input id="startingPath" class="form-control" value="m"></input>
                             </div>
                             <label for="searchSpace" class="col-sm-2 control-label">Search Space</label>
-                            <div class="col-sm-3">
+                            <div class="col-sm-2">
                                 <input id="searchSpace" class="form-control" value="20"></input>
+                            </div>
+                            <label for="includeEmpty" class="col-sm-1 control-label">Incl. Unused</label>
+                            <div class="col-sm-1">
+                                <input id="includeEmpty" type="checkbox" class="form-control"></input>
                             </div>
                             <div class="col-sm-2">
                                 <span class="input-group-btn">
@@ -112,6 +116,7 @@
         	DOM.startingPath = $('#startingPath');
         	DOM.total = $('#total');
         	DOM.searchSpace = $('#searchSpace');
+        	DOM.includeEmpty = $('#includeEmpty');
             DOM.addressRowTemplate = $("#address-row-template").html();
         	
         	function init() {
@@ -166,7 +171,7 @@
             }
             
             function reportOnBalance(key, path, bal, r, s) {
-                if (bal > 0 || r > 0 || s > 0) {
+                if (includeEmpty.checked || bal > 0 || r > 0 || s > 0) {
                     var row = $(DOM.addressRowTemplate);
                     row.find(".derivation span").text(path);
                     var addr = key.publicKey.toAddress();
