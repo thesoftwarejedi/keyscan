@@ -182,7 +182,7 @@
                     row.find(".balance span").text(bal);
                     row.find(".activity span").text(r+s);
                     DOM.addresses.append(row);
-                    DOM.total.html(Number(DOM.total.html()) * 100000000 + bal);
+                    DOM.total.html(Number(DOM.total.html()) + bal);
                 }
                 DOM.status.text('Checked ' + path);
             }
