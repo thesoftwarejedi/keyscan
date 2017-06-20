@@ -159,7 +159,7 @@
                     for (var idx = 0; idx < keysPerPath[0]; idx++) {
                         var derivedKey = key.derive(idx, hardened);                        
                         //for reporting purposes, not used in calc
-                        var path = startPath + '/' + DOM.startingFrom + idx + (hardened ? "'" : "");
+                        var path = startPath + '/' + (parseInt(DOM.startingFrom) + idx) + (hardened ? "'" : "");
                         
                         checkBalance(derivedKey, path);
                         
