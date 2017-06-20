@@ -97,6 +97,9 @@
                                 <div class="input-group">Activity</div>
                             </th>
                             <th>
+                                <div class="input-group">Public Key</div>
+                            </th>
+                            <th>
                                 <div class="input-group">Private Key</div>
                             </th>
                         </thead>
@@ -112,6 +115,7 @@
                 <td class="address"><span></span></td>
                 <td class="balance"><span></span></td>
                 <td class="activity"><span></span></td>
+                <td class="pubkey"><span></span></td>
                 <td class="privkey"><span></span></td>
             </tr>
         </script>
@@ -199,6 +203,7 @@
                     row.find(".derivation span").text(path);
                     var addr = key.publicKey.toAddress();
                     row.find(".address span").html('<a target="_blank" href="https://blockchain.info/address/' + addr + '">' + addr + '</a>');
+                    row.find(".publicKey span").text(key.publicKey);
                     try {
                         row.find(".privkey span").text(key.privateKey.toWIF());
                     } catch(e) { }
