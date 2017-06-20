@@ -130,8 +130,8 @@
         	DOM.searchSpace = $('#searchSpace');
         	DOM.includeEmpty = $('#includeEmpty');
             DOM.addressRowTemplate = $("#address-row-template").html();
-            DOM.waitTime = $('#waitTime').val();
-            DOM.startingFrom = parseInt($('#startingFrom').val());
+            DOM.waitTime = $('#waitTime');
+            DOM.startingFrom = $('#startingFrom');
         	
         	function init() {
         		DOM.btnScan.on('click', scan);
@@ -155,11 +155,13 @@
             
             async function findInterestingDerivitives(key, startPath, keysPerPath) {
                 var hardened = false;
+                var startFrom = parseInt(DOM.startingFrom.val());
+                var waitTime = parseInt(DOM.waitTime.val());
                 for (var a = 0; a <= 1; a++) { //do this twice, for hardened/not hardened
                     for (var idx = 0; idx < keysPerPath[0]; idx++) {
-                        var derivedKey = key.derive(idx + DOM.startingFrom, hardened);                        
+                        var derivedKey = key.derive(idx + startFrom, hardened);                        
                         //for reporting purposes, not used in calc
-                        var path = startPath + '/' + (idx + DOM.startingFrom) + (hardened ? "'" : "");
+                        var path = startPath + '/' + (idx + startFrom) + (hardened ? "'" : "");
                         
                         checkBalance(derivedKey, path);
                         
