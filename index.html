@@ -130,8 +130,8 @@
         	DOM.searchSpace = $('#searchSpace');
         	DOM.includeEmpty = $('#includeEmpty');
             DOM.addressRowTemplate = $("#address-row-template").html();
-            DOM.waitTime = $('#waitTime');
-            DOM.startingFrom = $('#startingFrom');
+            DOM.waitTime = $('#waitTime').val();
+            DOM.startingFrom = $('#startingFrom').val();
         	
         	function init() {
         		DOM.btnScan.on('click', scan);
