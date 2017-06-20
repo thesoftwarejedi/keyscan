@@ -147,10 +147,10 @@
                 } else if (keyTxt.startsWith('xprv')) {
         		  key = new HDPrivateKey(DOM.key.val());
                 }
-                checkBalance(key, 'm');
+                //checkBalance(key, 'm');
                 var keysPerPath = DOM.searchSpace.val().split(",").map(Number);
                 var startingPath = DOM.startingPath.val();
-                findInterestingDerivitives(key.derive(startingPath), startingPath, keysPerPath);      
+                findInterestingDerivitives(key.derive(startingPath), startingPath, keysPerPath);
         	}
             
             function findInterestingDerivitives(key, startPath, keysPerPath) {
