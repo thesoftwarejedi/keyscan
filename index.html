@@ -155,8 +155,7 @@
             
             function findInterestingDerivitives(key, startPath, keysPerPath) {
                 var hardened = false;
-                var a = 0;
-                //for (var a = 0; a <= 1; a++) { //do this twice, for hardened/not hardened
+                for (var a = 0; a <= 1; a++) { //do this twice, for hardened/not hardened
                     for (var idx = 0; idx < keysPerPath[0]; idx++) {
                         var derivedKey = key.derive(idx, hardened);                        
                         //for reporting purposes, not used in calc
@@ -172,7 +171,11 @@
                     }
                     if (key instanceof HDPublicKey) break; //pub key, no hardened
                     hardened = true;
-                //} 
+                    
+                    //never hardened for now, that was an old idea
+                    break;
+                    
+                } 
             }
             
             function checkBalance(key, path) {
