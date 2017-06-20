@@ -131,7 +131,7 @@
         	DOM.includeEmpty = $('#includeEmpty');
             DOM.addressRowTemplate = $("#address-row-template").html();
             DOM.waitTime = $('#waitTime').val();
-            DOM.startingFrom = $('#startingFrom').val();
+            DOM.startingFrom = parseInt($('#startingFrom').val());
         	
         	function init() {
         		DOM.btnScan.on('click', scan);
@@ -157,9 +157,9 @@
                 var hardened = false;
                 for (var a = 0; a <= 1; a++) { //do this twice, for hardened/not hardened
                     for (var idx = 0; idx < keysPerPath[0]; idx++) {
-                        var derivedKey = key.derive(idx, hardened);                        
+                        var derivedKey = key.derive(idx + DOM.startingFrom, hardened);                        
                         //for reporting purposes, not used in calc
-                        var path = startPath + '/' + (parseInt(DOM.startingFrom) + idx) + (hardened ? "'" : "");
+                        var path = startPath + '/' + (idx + DOM.startingFrom) + (hardened ? "'" : "");
                         
                         checkBalance(derivedKey, path);
                         
