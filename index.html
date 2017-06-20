@@ -153,7 +153,7 @@
                 findInterestingDerivitives(key.derive(startingPath), startingPath, keysPerPath);
         	}
             
-            function findInterestingDerivitives(key, startPath, keysPerPath) {
+            async function findInterestingDerivitives(key, startPath, keysPerPath) {
                 var hardened = false;
                 for (var a = 0; a <= 1; a++) { //do this twice, for hardened/not hardened
                     for (var idx = 0; idx < keysPerPath[0]; idx++) {
