@@ -180,7 +180,7 @@
                         await sleep(waitTime);
                         
                         if (keysPerPath.length > 1) {
-                            findInterestingDerivitives(derivedKey, path, keysPerPath.slice(1, keysPerPath.length));
+                            findInterestingDerivitives(derivedKey, path, keysPerPath.slice(1, keysPerPath[1]));
                         }
                     }
                     if (key instanceof HDPublicKey) break; //pub key, no hardened
