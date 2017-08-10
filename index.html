@@ -2,9 +2,17 @@
 
 <head lang="en">
     <meta charset="utf-8" />
-    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
     <script src="bower_components/jquery/dist/jquery.min.js"></script>
+    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
+
     <script src="bower_components/bitcore/bitcore.min.js"></script>
+
+    <style src="bower_components/datatables.net/css/jquery.dataTables.min.css"></style>
+    <script src="bower_components/datatables.net/js/jquery.datatables.min.js"></script>
+    
+    <style src="bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css"></style>
+    <script src="bower_components/datatables.net-bs/js/datatables.bootstrap.min.js"></script>
+    
     <title>Key scanner</title>
 </head>
 
@@ -114,7 +122,7 @@
                 <p>Note these addreses are derived from the
                     <strong>BIP32 Extended Key</strong>
                 </p>
-                <table class="table table-striped">
+                <table id="resultsTable" class="table table-striped">
                     <thead>
                         <th>
                             <div class="input-group">Derivation</div>
@@ -172,12 +180,20 @@
         DOM.searchDepth = $('#searchDepth');
         DOM.autoChangeAddresses = $('#autoChangeAddresses');
 
+        var theTable;
+
         function init() {
             DOM.btnScan.on('click', scan);
+            $(document).ready(function () {
+                theTable = $('#resultsTable').DataTable( {
+                    "lengthChange": false,
+                    "paging": false
+                });
+            });
         }
 
         function scan() {
-            
+
             //reset these - some bug nulling them out
             DOM.waitTime = parseInt($('#waitTime'));
             DOM.startingFrom = parseInt($('#startingFrom').val());
@@ -202,23 +218,44 @@
             findInterestingDerivitives(key.derive(startingPath), startingPath, keysPerPath, searchDepth);
         }
 
-        async function findInterestingDerivitives(key, startPath, keysPerPath, searchDepth) {
+        function findInterestingDerivitives(key, startPath, keysPerPath, searchDepth) {
             for (var idx = 0; idx < keysPerPath; idx++) {
-                var derivedKey = key.derive(idx + DOM.startingFrom);
 
-                //for reporting purposes, not used in calc
-                var path = startPath + '/' + (idx + DOM.startingFrom);
+                if (searchDepth == 1 && autoChangeAddresses.checked) {
+                    //this is the last in the depth and auto change address is checked.   we need 2 keys.  1 for 0/N and one for 1/N
 
-                checkBalance(derivedKey, path);
+                    //key for 0
+                    var derivedKey = key.derive(0).derive(idx + DOM.startingFrom);
+                    //for reporting purposes, not used in calc
+                    var path = startPath + '/0/' + (idx + DOM.startingFrom);
+                    checkBalance(derivedKey, path);
 
-                await sleep(DOM.waitTime);
+                    //key for 1
+                    var derivedKey = key.derive(1).derive(idx + DOM.startingFrom);
+                    //for reporting purposes, not used in calc
+                    var path = startPath + '/1/' + (idx + DOM.startingFrom);
+                    checkBalance(derivedKey, path);
+                } else {
+                    //search depth > 1
 
-                findInterestingDerivitives(derivedKey, path, keysPerPath, searchDepth - 1);
+                    var derivedKey = key.derive(idx + DOM.startingFrom);
+                    //for reporting purposes, not used in calc
+                    var path = startPath + '/' + (idx + DOM.startingFrom);
+                    checkBalance(derivedKey, path);
+                }
+
+                //await sleep(DOM.waitTime);
+
+                if (searchDepth != 1) {
+                    findInterestingDerivitives(derivedKey, path, keysPerPath, searchDepth - 1);
+                }
 
                 if (idx == keysPerPath - 1) {
-                    //reset start path and depth for next loop!
+                    //we are at the end of the depth
+                    if (searchDepth == 1) return;
+                    //reset start path and depth for next loop due to some bug
                     startPath = DOM.startingPath.val()
-                    searchDepth = DOM.searchDepth.val();
+                    //searchDepth = DOM.searchDepth.val();
                 }
             }
         }
@@ -242,6 +279,26 @@
 
         function reportOnBalance(key, path, bal, r, s) {
             if (includeEmpty.checked || bal > 0 || r > 0 || s > 0) {
+
+                var addr = key.publicKey.toAddress();
+
+                var url;
+                if ($('#coin').val() == "BTC") {
+                    url = '<a target="_blank" href="https://blockchain.info/address/' + addr + '">' + addr + '</a>';
+                } else {
+                    url = '<a target="_blank" href="https://bch-bitcore2.trezor.io/address/' + addr + '">' + addr + '</a>';
+                }
+
+                var privKey;
+                try {
+                    privKey = key.privateKey.toWIF();
+                } catch (e) { 
+                    privKey = "N/A";
+                }
+
+                theTable.row.add([path, url, bal, r + s, key.publicKey, privKey]).draw();
+
+                /*
                 var row = $(DOM.addressRowTemplate);
                 row.find(".derivation span").text(path);
                 var addr = key.publicKey.toAddress();
@@ -257,6 +314,8 @@
                 row.find(".balance span").text(bal);
                 row.find(".activity span").text(r + s);
                 DOM.addresses.append(row);
+                */
+
                 DOM.total.html(Number(DOM.total.html()) + bal);
             }
             DOM.status.text('Checked ' + path);
