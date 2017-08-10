@@ -177,6 +177,11 @@
         }
 
         function scan() {
+            
+            //reset these - some bug nulling them out
+            DOM.waitTime = parseInt($('#waitTime'));
+            DOM.startingFrom = parseInt($('#startingFrom').val());
+
             if (DOM.waitTime < 100) {
                 DOM.waitTime = 100;
             }
