@@ -213,22 +213,7 @@
 
                 await sleep(DOM.waitTime);
 
-                if (searchDepth > 1) {
-                    findInterestingDerivitives(derivedKey, path, keysPerPath, searchDepth - 1);
-                } else if (autoChangeAddresses.checked) {
-                    //if we're at the end of a path, check the std and change addresses too
-                    var newDerivedKey = derivedKey.derive(0);
-                    var newPath = path + "/0";
-                    checkBalance(newDerivedKey, newPath);
-
-                    await sleep(DOM.waitTime);
-
-                    newDerivedKey = derivedKey.derive(1);
-                    newPath = path + "/1";
-                    checkBalance(newDerivedKey, newPath);
-
-                    await sleep(DOM.waitTime);
-                }
+                findInterestingDerivitives(derivedKey, path, keysPerPath, searchDepth - 1);
 
                 if (idx == keysPerPath - 1) {
                     //reset start path and depth for next loop!
