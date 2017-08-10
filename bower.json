@@ -13,6 +13,8 @@
     "tests"
   ],
   "dependencies": {
-    "bitcore": "~0.12.14"
+    "bitcore": "~0.12.14",
+    "datatables.net": "^1.10.15",
+    "datatables.net-bs": "^2.1.1"
   }
 }
