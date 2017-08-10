@@ -9,7 +9,7 @@
 
     <style src="bower_components/datatables.net/css/jquery.dataTables.min.css"></style>
     <script src="bower_components/datatables.net/js/jquery.datatables.min.js"></script>
-    
+
     <style src="bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css"></style>
     <script src="bower_components/datatables.net-bs/js/datatables.bootstrap.min.js"></script>
     
@@ -187,7 +187,8 @@
             $(document).ready(function () {
                 theTable = $('#resultsTable').DataTable( {
                     "lengthChange": false,
-                    "paging": false
+                    "paging": false,
+                    "order": [[2, "desc"]]
                 });
             });
         }
@@ -218,7 +219,7 @@
             findInterestingDerivitives(key.derive(startingPath), startingPath, keysPerPath, searchDepth);
         }
 
-        function findInterestingDerivitives(key, startPath, keysPerPath, searchDepth) {
+        async function findInterestingDerivitives(key, startPath, keysPerPath, searchDepth) {
             for (var idx = 0; idx < keysPerPath; idx++) {
 
                 if (searchDepth == 1 && autoChangeAddresses.checked) {
@@ -244,7 +245,7 @@
                     checkBalance(derivedKey, path);
                 }
 
-                //await sleep(DOM.waitTime);
+                await sleep(DOM.waitTime);
 
                 if (searchDepth != 1) {
                     findInterestingDerivitives(derivedKey, path, keysPerPath, searchDepth - 1);
