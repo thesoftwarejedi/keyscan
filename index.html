@@ -1,242 +1,283 @@
 <html>
-    
-    <head lang="en">
-        <meta charset="utf-8" />
-        <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
-        <script src="bower_components/jquery/dist/jquery.min.js"></script>
-        <script src="bower_components/bitcore/bitcore.min.js"></script>
-        <title>Key scanner</title>
-    </head>
-    
-    <body>
-        <div class="container">
-            <h1 class="text-center">Key scanner</h1>
-            <hr>
-            <div class="row">
-                <div class="col-md-12">
-                    <h2>Mnemonic</h2>
-                    <form class="form-horizontal" role="form">
-                        <div class="col-sm-2"></div>
+
+<head lang="en">
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
+    <script src="bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="bower_components/bitcore/bitcore.min.js"></script>
+    <title>Key scanner</title>
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="text-center">Key scanner</h1>
+        <h5 class="text-center">Warning, this tool is for fairly advanced Bitcoin users</h5>
+        <hr>
+        <div class="row">
+            <div class="col-md-12">
+                <form class="form-horizontal" role="form">
+
+                    <div class="col-sm-2"></div>
+                    <div class="col-sm-10"></div>
+
+                    <div class="form-group">
+                        <label for="coin" class="col-sm-2 control-label">Coin</label>
                         <div class="col-sm-10">
-                        </div>
-                        <div class="form-group">
-                            <label for="coin" class="col-sm-2 control-label">Coin</label>
-                            <div class="col-sm-10">
-                                <select id="coin" class="form-control">
+                            <select id="coin" class="form-control">
                                     <option value="BTC" selected>Bitcoin</option>
                                     <option value="BCH">Bitcoin Cash</option>
                                 </select>
-                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="key" class="col-sm-2 control-label">Key</label>
-                            <div class="col-sm-10">
-                                <textarea id="key" class="form-control"></textarea>
-                            </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="key" class="col-sm-2 control-label">Public or Private BIP32 Key</label>
+                        <div class="col-sm-10">
+                            <textarea id="key" class="form-control"></textarea>
+                            <p>If you need help determining your key from a recovery phrase go <a href="https://iancoleman.github.io/bip39/">here</a></p>
                         </div>
-                        <div class="form-group">
-                            <label for="startingPath" class="col-sm-2 control-label">Starting Path</label>
-                            <div class="col-sm-2">
-                                <input id="startingPath" class="form-control" value="m"></input>
-                            </div>
-                            <label for="searchSpace" class="col-sm-2 control-label">Search Space</label>
-                            <div class="col-sm-2">
-                                <input id="searchSpace" class="form-control" value="20"></input>
-                            </div>
-                            <label for="includeEmpty" class="col-sm-1 control-label">Incl. Unused</label>
-                            <div class="col-sm-1">
-                                <input id="includeEmpty" type="checkbox" class="form-control"></input>
-                            </div>
-                            <div class="col-sm-2">
-                                <span class="input-group-btn">
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-sm-2"></div>
+                        <div class="col-sm-10">Google your wallet's derivation path for help</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="startingPath" class="col-sm-2 control-label">Starting Path</label>
+                        <div class="col-sm-1">
+                            <input id="startingPath" class="form-control" value="m"></input>
+                            <a href="https://sevdev.hu/ipns/sevdev.hu/posts/2016-11-16-working-with-bitcoin-hd-wallets.html" target="_blank">More Info</a>
+                        </div>
+                        <label for="autoChangeAddresses" class="col-sm-2 control-label">Auto Append 0,1</label>
+                        <div class="col-sm-1">
+                            <input id="autoChangeAddresses" class="form-control" type="checkbox" value="checked"></input>
+                        </div>
+                        <label for="startingFrom" class="col-sm-2 control-label">Starting From</label>
+                        <div class="col-sm-1">
+                            <input id="startingFrom" class="form-control" value="0"></input>
+                        </div>
+                        <label for="includeEmpty" class="col-sm-2 control-label">Incl. Unused</label>
+                        <div class="col-sm-1">
+                            <input id="includeEmpty" type="checkbox" class="form-control"></input>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="searchSpace" class="col-sm-2 control-label">Address Count</label>
+                        <div class="col-sm-2">
+                            <input id="searchSpace" class="form-control" value="5"></input>
+                        </div>
+                        <label for="searchDepth" class="col-sm-2 control-label">Derivation Depth</label>
+                        <div class="col-sm-2">
+                            <input id="searchDepth" class="form-control" value="1"></input>
+                        </div>
+                        <label for="waitTime" class="col-sm-2 control-label">Delay in ms (be nice)</label>
+                        <div class="col-sm-2">
+                            <input id="waitTime" class="form-control" value="100"></input>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-sm-2">
+                            <span class="input-group-btn">
+                            </span>
+                        </div>
+                        <div class="col-sm-10">
+                            <span class="input-group-btn">
                                     <button id="btnScan" class="btn" type="button">Scan</button>
                                 </span>
-                            </div>
                         </div>
-            
-                        <div class="form-group">
-                            <label for="startingFrom" class="col-sm-2 control-label">Starting From</label>
-                            <div class="col-sm-2">
-                                <input id="startingFrom" class="form-control" value="0"></input>
-                            </div>
-                            <label for="waitTime" class="col-sm-2 control-label">Wait time</label>
-                            <div class="col-sm-2">
-                                <input id="waitTime" class="form-control" value="1000"></input>
-                            </div>
-                        <div class="col-sm-8" />
-                        </div>
-                    </form>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-12">
-                    <h2>Status</h2>
-                    <p>
-                        <span id="status"></span>
-                    </p>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-12">
-                    <h2>Total</h2>
-                    <p>
-                        <span id="total"></span>
-                    </p>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-12">
-                    <h2>Interesting Addresses</h2>
-                    <p>Note these addreses are derived from the
-                        <strong>BIP32 Extended Key</strong>
-                    </p>
-                    <table class="table table-striped">
-                        <thead>
-                            <th>
-                                <div class="input-group">Derivation</div>
-                            </th>
-                            <th>
-                                <div class="input-group">Address</div>
-                            </th>
-                            <th>
-                                <div class="input-group">Balance</div>
-                            </th>
-                            <th>
-                                <div class="input-group">Activity</div>
-                            </th>
-                            <th>
-                                <div class="input-group">Public Key</div>
-                            </th>
-                            <th>
-                                <div class="input-group">Private Key</div>
-                            </th>
-                        </thead>
-                        <tbody id="addresses">
-                        </tbody>
-                    </table>
-                </div>
+                    </div>
+                </form>
             </div>
         </div>
-        <script type="text/template" id="address-row-template">
-            <tr>
-                <td class="derivation"><span></span></td>
-                <td class="address"><span></span></td>
-                <td class="balance"><span></span></td>
-                <td class="activity"><span></span></td>
-                <td class="publickey"><span></span></td>
-                <td class="privkey"><span></span></td>
-            </tr>
-        </script>
-        <script>
-            var bitcore = require('bitcore');
-            var HDPrivateKey = bitcore.HDPrivateKey;
-            var HDPublicKey = bitcore.HDPublicKey;
-        	
-        	var DOM = {};
-        	DOM.key = $('#key');
-        	DOM.status = $('#status');
-        	DOM.addresses = $('#addresses');
-        	DOM.btnScan = $('#btnScan');
-        	DOM.startingPath = $('#startingPath');
-        	DOM.total = $('#total');
-        	DOM.searchSpace = $('#searchSpace');
-        	DOM.includeEmpty = $('#includeEmpty');
-            DOM.addressRowTemplate = $("#address-row-template").html();
-            DOM.waitTime = $('#waitTime');
-            DOM.startingFrom = $('#startingFrom');
-        	
-        	function init() {
-        		DOM.btnScan.on('click', scan);
-        	}
-        	
-        	function scan() {
-                var keyTxt = DOM.key.val();
-                DOM.addresses.empty();
-        	    DOM.total.html('0');
-                var key;
-                if (keyTxt.startsWith('xpub')) {
-        		  key = new HDPublicKey(DOM.key.val());
-                } else if (keyTxt.startsWith('xprv')) {
-        		  key = new HDPrivateKey(DOM.key.val());
-                }
-                //checkBalance(key, 'm');
-                var keysPerPath = DOM.searchSpace.val().split(",").map(Number);
-                var startingPath = DOM.startingPath.val();
-                findInterestingDerivitives(key.derive(startingPath), startingPath, keysPerPath);
-        	}
-            
-            async function findInterestingDerivitives(key, startPath, keysPerPath) {
-                var hardened = false;
-                var startFrom = parseInt(DOM.startingFrom.val());
-                var waitTime = parseInt(DOM.waitTime.val());
-                for (var a = 0; a <= 1; a++) { //do this twice, for hardened/not hardened
-                    for (var idx = 0; idx < keysPerPath[0]; idx++) {
-                        var derivedKey = key.derive(idx + startFrom, hardened);                        
-                        //for reporting purposes, not used in calc
-                        var path = startPath + '/' + (idx + startFrom) + (hardened ? "'" : "");
-                        
-                        checkBalance(derivedKey, path);
-                        
-                        await sleep(waitTime);
-                        
-                        if (keysPerPath.length > 1) {
-                            findInterestingDerivitives(derivedKey, path, keysPerPath.slice(1, keysPerPath[1]));
-                        }
-                    }
-                    if (key instanceof HDPublicKey) break; //pub key, no hardened
-                    hardened = true;
-                    
-                    //never hardened for now, that was an old idea
-                    break;
-                    
-                } 
+        <div class="row">
+            <div class="col-md-12">
+                <h2>Status</h2>
+                <p>
+                    <span id="status"></span>
+                </p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <h2>Total Available Bitcoin</h2>
+                <p>
+                    <span id="total"></span>
+                </p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <h2>Addresses</h2>
+                <p>Note these addreses are derived from the
+                    <strong>BIP32 Extended Key</strong>
+                </p>
+                <table class="table table-striped">
+                    <thead>
+                        <th>
+                            <div class="input-group">Derivation</div>
+                        </th>
+                        <th>
+                            <div class="input-group">Address</div>
+                        </th>
+                        <th>
+                            <div class="input-group">Balance</div>
+                        </th>
+                        <th>
+                            <div class="input-group">Activity</div>
+                        </th>
+                        <th>
+                            <div class="input-group">Public Key</div>
+                        </th>
+                        <th>
+                            <div class="input-group">Private Key</div>
+                        </th>
+                    </thead>
+                    <tbody id="addresses">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script type="text/template" id="address-row-template">
+        <tr>
+            <td class="derivation"><span></span></td>
+            <td class="address"><span></span></td>
+            <td class="balance"><span></span></td>
+            <td class="activity"><span></span></td>
+            <td class="publickey"><span></span></td>
+            <td class="privkey"><span></span></td>
+        </tr>
+    </script>
+    <script>
+        var bitcore = require('bitcore');
+        var HDPrivateKey = bitcore.HDPrivateKey;
+        var HDPublicKey = bitcore.HDPublicKey;
+
+        var DOM = {};
+        DOM.key = $('#key');
+        DOM.status = $('#status');
+        DOM.addresses = $('#addresses');
+        DOM.btnScan = $('#btnScan');
+        DOM.startingPath = $('#startingPath');
+        DOM.total = $('#total');
+        DOM.searchSpace = $('#searchSpace');
+        DOM.includeEmpty = $('#includeEmpty');
+        DOM.includeChange = $('#autoIncludeChangeAddresses');
+        DOM.addressRowTemplate = $("#address-row-template").html();
+        DOM.waitTime = parseInt($('#waitTime'));
+        DOM.startingFrom = parseInt($('#startingFrom').val());
+        DOM.searchDepth = $('#searchDepth');
+        DOM.autoChangeAddresses = $('#autoChangeAddresses');
+
+        function init() {
+            DOM.btnScan.on('click', scan);
+        }
+
+        function scan() {
+            if (DOM.waitTime < 100) {
+                DOM.waitTime = 100;
             }
-            
-            function checkBalance(key, path) {
-                console.log("checking " + path);
-                var address = key.publicKey.toAddress();
+
+            var keyTxt = DOM.key.val();
+            DOM.addresses.empty();
+            DOM.total.html('0');
+            var key;
+            if (keyTxt.startsWith('xpub')) {
+                key = new HDPublicKey(DOM.key.val());
+            } else if (keyTxt.startsWith('xprv')) {
+                key = new HDPrivateKey(DOM.key.val());
+            }
+            //checkBalance(key, 'm');
+            var keysPerPath = DOM.searchSpace.val();
+            var searchDepth = DOM.searchDepth.val();
+            var startingPath = DOM.startingPath.val();
+            findInterestingDerivitives(key.derive(startingPath), startingPath, keysPerPath, searchDepth);
+        }
+
+        async function findInterestingDerivitives(key, startPath, keysPerPath, searchDepth) {
+            for (var idx = 0; idx < keysPerPath; idx++) {
+                var derivedKey = key.derive(idx + DOM.startingFrom);
+
+                //for reporting purposes, not used in calc
+                var path = startPath + '/' + (idx + DOM.startingFrom);
+
+                checkBalance(derivedKey, path);
+
+                await sleep(DOM.waitTime);
+
+                if (searchDepth > 1) {
+                    findInterestingDerivitives(derivedKey, path, keysPerPath, searchDepth - 1);
+                } else if (autoChangeAddresses.checked) {
+                    //if we're at the end of a path, check the std and change addresses too
+                    var newDerivedKey = derivedKey.derive(0);
+                    var newPath = path + "/0";
+                    checkBalance(newDerivedKey, newPath);
+
+                    await sleep(DOM.waitTime);
+
+                    newDerivedKey = derivedKey.derive(1);
+                    newPath = path + "/1";
+                    checkBalance(newDerivedKey, newPath);
+
+                    await sleep(DOM.waitTime);
+                }
+
+                if (idx == keysPerPath - 1) {
+                    //reset start path and depth for next loop!
+                    startPath = DOM.startingPath.val()
+                    searchDepth = DOM.searchDepth.val();
+                }
+            }
+        }
+
+        function checkBalance(key, path) {
+            console.log("checking " + path);
+            var address = key.publicKey.toAddress();
+            if ($('#coin').val() == "BTC") {
+                var qry = 'https://insight.bitpay.com/api/addr/' + address;
+            } else {
+                var qry = 'https://bch-bitcore2.trezor.io/api/addr/' + address;
+            }
+            $.get(qry)
+                .done(function (data) {
+                    reportOnBalance(key, path, Number(data.balance), Number(data.totalReceived), Number(data.totalSent));
+                })
+                .fail(function (ex) {
+                    console.log("$.get failed - " + ex);
+                });
+        }
+
+        function reportOnBalance(key, path, bal, r, s) {
+            if (includeEmpty.checked || bal > 0 || r > 0 || s > 0) {
+                var row = $(DOM.addressRowTemplate);
+                row.find(".derivation span").text(path);
+                var addr = key.publicKey.toAddress();
                 if ($('#coin').val() == "BTC") {
-                    var qry = 'https://insight.bitpay.com/api/addr/' + address;
+                    row.find(".address span").html('<a target="_blank" href="https://blockchain.info/address/' + addr + '">' + addr + '</a>');
                 } else {
-                    var qry = 'https://bch-bitcore2.trezor.io/api/addr/' + address;
-                }
-                $.get(qry)
-                    .done(function(data) {
-                        reportOnBalance(key, path, Number(data.balance), Number(data.totalReceived), Number(data.totalSent));
-                    })
-                    .fail(function(ex) {
-                        console.log( "$.get failed - " + ex );
-                    });
-            }
-            
-            function reportOnBalance(key, path, bal, r, s) {
-                if (includeEmpty.checked || bal > 0 || r > 0 || s > 0) {
-                    var row = $(DOM.addressRowTemplate);
-                    row.find(".derivation span").text(path);
-                    var addr = key.publicKey.toAddress();
-                    if ($('#coin').val() == "BTC") {
-                        row.find(".address span").html('<a target="_blank" href="https://blockchain.info/address/' + addr + '">' + addr + '</a>');
-                    } else {
                     row.find(".address span").html('<a target="_blank" href="https://bch-bitcore2.trezor.io/address/' + addr + '">' + addr + '</a>');
-                    }                    
-                    row.find(".publicKey span").text(key.publicKey);
-                    try {
-                        row.find(".privkey span").text(key.privateKey.toWIF());
-                    } catch(e) { }
-                    row.find(".balance span").text(bal);
-                    row.find(".activity span").text(r+s);
-                    DOM.addresses.append(row);
-                    DOM.total.html(Number(DOM.total.html()) + bal);
                 }
-                DOM.status.text('Checked ' + path);
+                row.find(".publicKey span").text(key.publicKey);
+                try {
+                    row.find(".privkey span").text(key.privateKey.toWIF());
+                } catch (e) { }
+                row.find(".balance span").text(bal);
+                row.find(".activity span").text(r + s);
+                DOM.addresses.append(row);
+                DOM.total.html(Number(DOM.total.html()) + bal);
             }
-            
-            function sleep(ms) {
-                return new Promise(resolve => setTimeout(resolve, ms));
-            }
-            
-        	init();
-        </script>
-    </body>
+            DOM.status.text('Checked ' + path);
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        init();
+    </script>
+</body>
 
 </html>
