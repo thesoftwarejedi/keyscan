@@ -12,7 +12,7 @@
 
     <style src="bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css"></style>
     <script src="bower_components/datatables.net-bs/js/datatables.bootstrap.min.js"></script>
-    
+
     <title>Key scanner</title>
 </head>
 
@@ -165,27 +165,16 @@
         var HDPublicKey = bitcore.HDPublicKey;
 
         var DOM = {};
-        DOM.key = $('#key');
         DOM.status = $('#status');
-        DOM.addresses = $('#addresses');
         DOM.btnScan = $('#btnScan');
-        DOM.startingPath = $('#startingPath');
         DOM.total = $('#total');
-        DOM.searchSpace = $('#searchSpace');
-        DOM.includeEmpty = $('#includeEmpty');
-        DOM.includeChange = $('#autoIncludeChangeAddresses');
-        DOM.addressRowTemplate = $("#address-row-template").html();
-        DOM.waitTime = parseInt($('#waitTime'));
-        DOM.startingFrom = parseInt($('#startingFrom').val());
-        DOM.searchDepth = $('#searchDepth');
-        DOM.autoChangeAddresses = $('#autoChangeAddresses');
 
         var theTable;
 
         function init() {
             DOM.btnScan.on('click', scan);
             $(document).ready(function () {
-                theTable = $('#resultsTable').DataTable( {
+                theTable = $('#resultsTable').DataTable({
                     "lengthChange": false,
                     "paging": false,
                     "order": [[2, "desc"]]
@@ -193,18 +182,31 @@
             });
         }
 
+        //we will use this to build up an array of keys to scan, so then we can synchronously scan them
+        //contents will have properties .path and .key
+        var keyList;
+
         function scan() {
 
-            //reset these - some bug nulling them out
-            DOM.waitTime = parseInt($('#waitTime'));
+            //grab all the info from the inputs
+            DOM.autoChangeAddresses = $('#autoChangeAddresses');
+            DOM.startingPath = $('#startingPath');
+            DOM.searchDepth = $('#searchDepth');
+            DOM.waitTime = parseInt($('#waitTime').val());
+            DOM.includeEmpty = $('#includeEmpty');
             DOM.startingFrom = parseInt($('#startingFrom').val());
+            DOM.searchSpace = $('#searchSpace');
+            DOM.key = $('#key');
+
+            theTable.clear();
+            keyList = [];
 
             if (DOM.waitTime < 100) {
                 DOM.waitTime = 100;
             }
 
             var keyTxt = DOM.key.val();
-            DOM.addresses.empty();
+
             DOM.total.html('0');
             var key;
             if (keyTxt.startsWith('xpub')) {
@@ -217,6 +219,9 @@
             var searchDepth = DOM.searchDepth.val();
             var startingPath = DOM.startingPath.val();
             findInterestingDerivitives(key.derive(startingPath), startingPath, keysPerPath, searchDepth);
+
+            //ok now the keylist is filled, we go through and scan them snchronously
+            scanLoop();
         }
 
         async function findInterestingDerivitives(key, startPath, keysPerPath, searchDepth) {
@@ -229,23 +234,21 @@
                     var derivedKey = key.derive(0).derive(idx + DOM.startingFrom);
                     //for reporting purposes, not used in calc
                     var path = startPath + '/0/' + (idx + DOM.startingFrom);
-                    checkBalance(derivedKey, path);
+                    keyList.push({ "path": path, "key": derivedKey });
 
                     //key for 1
                     var derivedKey = key.derive(1).derive(idx + DOM.startingFrom);
                     //for reporting purposes, not used in calc
                     var path = startPath + '/1/' + (idx + DOM.startingFrom);
-                    checkBalance(derivedKey, path);
+                    keyList.push({ "path": path, "key": derivedKey });
                 } else {
                     //search depth > 1
 
                     var derivedKey = key.derive(idx + DOM.startingFrom);
                     //for reporting purposes, not used in calc
                     var path = startPath + '/' + (idx + DOM.startingFrom);
-                    checkBalance(derivedKey, path);
+                    keyList.push({ "path": path, "key": derivedKey });
                 }
-
-                await sleep(DOM.waitTime);
 
                 if (searchDepth != 1) {
                     findInterestingDerivitives(derivedKey, path, keysPerPath, searchDepth - 1);
@@ -256,26 +259,40 @@
                     if (searchDepth == 1) return;
                     //reset start path and depth for next loop due to some bug
                     startPath = DOM.startingPath.val()
-                    //searchDepth = DOM.searchDepth.val();
                 }
             }
         }
 
-        function checkBalance(key, path) {
+        function scanLoop() {
+            //grab the next key
+            var nextItem = keyList.shift();
+
+            if (!nextItem) return;
+
+            var key = nextItem.key;
+            var path = nextItem.path;
+
             console.log("checking " + path);
+
             var address = key.publicKey.toAddress();
             if ($('#coin').val() == "BTC") {
                 var qry = 'https://insight.bitpay.com/api/addr/' + address;
+                //var qry = 'https://blockexplorer.com/api/addr/' + address;
             } else {
                 var qry = 'https://bch-bitcore2.trezor.io/api/addr/' + address;
             }
-            $.get(qry)
-                .done(function (data) {
+            $.ajax({
+                url: qry,
+                success: function (data) {
                     reportOnBalance(key, path, Number(data.balance), Number(data.totalReceived), Number(data.totalSent));
-                })
-                .fail(function (ex) {
+                    sleep(DOM.waitTime);
+                    scanLoop();
+                },
+                error: function (ex) {
                     console.log("$.get failed - " + ex);
-                });
+                    scanLoop();
+                }
+            });
         }
 
         function reportOnBalance(key, path, bal, r, s) {
@@ -293,29 +310,11 @@
                 var privKey;
                 try {
                     privKey = key.privateKey.toWIF();
-                } catch (e) { 
+                } catch (e) {
                     privKey = "N/A";
                 }
 
                 theTable.row.add([path, url, bal, r + s, key.publicKey, privKey]).draw();
-
-                /*
-                var row = $(DOM.addressRowTemplate);
-                row.find(".derivation span").text(path);
-                var addr = key.publicKey.toAddress();
-                if ($('#coin').val() == "BTC") {
-                    row.find(".address span").html('<a target="_blank" href="https://blockchain.info/address/' + addr + '">' + addr + '</a>');
-                } else {
-                    row.find(".address span").html('<a target="_blank" href="https://bch-bitcore2.trezor.io/address/' + addr + '">' + addr + '</a>');
-                }
-                row.find(".publicKey span").text(key.publicKey);
-                try {
-                    row.find(".privkey span").text(key.privateKey.toWIF());
-                } catch (e) { }
-                row.find(".balance span").text(bal);
-                row.find(".activity span").text(r + s);
-                DOM.addresses.append(row);
-                */
 
                 DOM.total.html(Number(DOM.total.html()) + bal);
             }
@@ -323,7 +322,9 @@
         }
 
         function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
+            //return new Promise(resolve => setTimeout(resolve, ms));
+            var start = new Date().getTime();
+            while (new Date().getTime() < start + ms);
         }
 
         init();
